@@ -3,12 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="An interactive Arch Linux themed terminal portfolio for Vivek Kale with commands, fake filesystem, project details, and playful shell extras." />
+  <meta name="theme-color" content="#0d1117" />
+  <meta property="og:title" content="Vivek Kale | Arch Terminal Portfolio" />
+  <meta property="og:description" content="Explore Vivek Kale's portfolio through a fake Arch Linux terminal." />
+  <meta property="og:type" content="website" />
   <title>Vivek Kale | Arch Terminal Portfolio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1117'/%3E%3Cpath d='M32 8l17 34-6-5-3 6-8-16-8 16-3-6-6 5z' fill='%231793d1'/%3E%3C/svg%3E" />
   <style>
     :root {
       --bg: #0d1117;
       --bg-elevated: rgba(17, 24, 39, 0.9);
-      --panel: #111827;
       --panel-strong: rgba(8, 12, 18, 0.88);
       --panel-border: rgba(23, 147, 209, 0.28);
       --accent: #1793d1;
@@ -22,12 +27,12 @@
       --radius: 20px;
       --font: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
       --scanline-opacity: 0.12;
+      --terminal-max-width: 1080px;
     }
 
     body.light-theme {
       --bg: #edf5fb;
       --bg-elevated: rgba(255, 255, 255, 0.88);
-      --panel: #ffffff;
       --panel-strong: rgba(241, 247, 252, 0.92);
       --panel-border: rgba(23, 147, 209, 0.22);
       --accent: #0f78b8;
@@ -83,9 +88,20 @@
       display: none !important;
     }
 
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
     .boot,
     .terminal-shell {
-      width: min(1040px, 100%);
+      width: min(var(--terminal-max-width), 100%);
       border-radius: var(--radius);
       border: 1px solid var(--panel-border);
       box-shadow: var(--shadow);
@@ -128,7 +144,7 @@
     }
 
     .terminal-shell {
-      height: min(780px, calc(100vh - 48px));
+      height: min(820px, calc(100vh - 48px));
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -174,6 +190,8 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .status-pill,
@@ -193,7 +211,9 @@
     }
 
     .theme-button:hover,
-    .theme-button:focus-visible {
+    .theme-button:focus-visible,
+    .suggestion-chip:hover,
+    .suggestion-chip:focus-visible {
       transform: translateY(-1px);
       background: rgba(23, 147, 209, 0.2);
       outline: none;
@@ -240,6 +260,7 @@
       flex: 0 0 auto;
       color: var(--success);
       user-select: none;
+      white-space: nowrap;
     }
 
     .prompt .accent {
@@ -278,14 +299,22 @@
       margin: 4px 0;
     }
 
-    .info-card {
+    .info-card,
+    .panel-card {
       display: grid;
-      gap: 2px;
+      gap: 4px;
       padding: 12px 14px;
       border: 1px solid rgba(23, 147, 209, 0.18);
       border-radius: 14px;
       background: rgba(23, 147, 209, 0.05);
       margin: 4px 0;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin: 8px 0;
     }
 
     .typewriter {
@@ -314,14 +343,27 @@
       display: flex;
       align-items: center;
       min-height: 1.8rem;
+      position: relative;
+    }
+
+    .ghost-text {
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: rgba(139, 163, 184, 0.45);
+      pointer-events: none;
+      white-space: pre;
     }
 
     .terminal-input {
+      position: relative;
+      z-index: 1;
       flex: 1;
       background: transparent;
       border: 0;
       outline: none;
-      color: var(--text);
+      color: transparent;
+      text-shadow: 0 0 0 var(--text);
       font: inherit;
       caret-color: var(--accent);
       min-width: 0;
@@ -329,7 +371,8 @@
     }
 
     .terminal-input::placeholder {
-      color: rgba(139, 163, 184, 0.48);
+      color: transparent;
+      text-shadow: 0 0 0 rgba(139, 163, 184, 0.48);
     }
 
     .cursor {
@@ -341,6 +384,7 @@
       margin-left: 2px;
       border-radius: 1px;
       animation: blink 1s steps(1) infinite;
+      flex: 0 0 auto;
     }
 
     @keyframes blink {
@@ -368,14 +412,6 @@
       transition: transform 160ms ease, border-color 160ms ease, color 160ms ease;
     }
 
-    .suggestion-chip:hover,
-    .suggestion-chip:focus-visible {
-      color: var(--text);
-      border-color: rgba(23, 147, 209, 0.46);
-      transform: translateY(-1px);
-      outline: none;
-    }
-
     .ascii {
       color: var(--accent);
       line-height: 1.25;
@@ -389,6 +425,12 @@
     .inline-strong {
       color: var(--text);
       font-weight: 600;
+    }
+
+    .matrix {
+      letter-spacing: 0.22em;
+      line-height: 1.45;
+      color: var(--success);
     }
 
     @keyframes fade-up {
@@ -445,6 +487,20 @@
         font-size: 0.92rem;
       }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -482,14 +538,15 @@
           <span></span>
           <span></span>
         </div>
-        <div class="terminal-title">vivek@archlinux: ~/portfolio</div>
+        <div class="terminal-title" id="terminal-title">vivek@archlinux: ~/portfolio</div>
         <div class="terminal-actions">
           <span class="status-pill" id="sound-status">sound: off</span>
-          <button class="theme-button" id="theme-toggle" type="button">theme: dark</button>
+          <span class="status-pill" id="speed-status">speed: normal</span>
+          <button class="theme-button" id="theme-toggle" type="button" aria-label="Toggle theme">theme: dark</button>
         </div>
       </header>
 
-      <div class="terminal-body" id="terminal-output" tabindex="0">
+      <div class="terminal-body" id="terminal-output" tabindex="0" aria-live="polite">
         <div class="output-line">
           <div class="line-content ascii">
                    /\
@@ -505,6 +562,7 @@
           <div class="line-content">Welcome to Vivek Kale's terminal portfolio. Type <span class="command-tag">help</span> to explore.</div>
         </div>
       </div>
+      <p class="sr-only">Keyboard shortcuts include Ctrl+L to clear, Ctrl+C to stop animations, and Tab for autocomplete.</p>
     </section>
   </main>
 
@@ -515,22 +573,141 @@
     const terminalOutput = document.getElementById("terminal-output");
     const themeToggle = document.getElementById("theme-toggle");
     const soundStatus = document.getElementById("sound-status");
+    const speedStatus = document.getElementById("speed-status");
+    const terminalTitle = document.getElementById("terminal-title");
 
     const githubUrl = "https://github.com/vivekkale109";
-    const promptMarkup = '<span class="accent">vivek@archlinux</span>:<span class="muted">~/portfolio</span>$';
-    const commandList = [
+    const linkedinUrl = "https://www.linkedin.com/in/vivek-kale";
+    const emailAddress = "vivekkale109@gmail.com";
+
+    const speedMap = {
+      slow: 24,
+      normal: 11,
+      fast: 4
+    };
+
+    const projectsData = {
+      hyprland: {
+        title: "Hyprland Setup",
+        summary: "A minimal, fast Arch Linux desktop tuned for keyboard-first workflows.",
+        stack: "Arch Linux, Hyprland, kitty, zsh",
+        highlights: [
+          "Multi-monitor tiling tuned for productivity",
+          "Custom keybind layers for app launching and workspaces",
+          "Consistent visual theme across the desktop"
+        ]
+      },
+      waybar: {
+        title: "Waybar Customization",
+        summary: "A polished status bar with readable modules, accent-driven styling, and workflow shortcuts.",
+        stack: "Waybar, CSS, shell scripts",
+        highlights: [
+          "Workspace-aware color states",
+          "Battery, network, audio, and system modules",
+          "Designed for both aesthetics and low-distraction visibility"
+        ]
+      },
+      rofi: {
+        title: "Rofi Themes",
+        summary: "Launcher themes focused on fast navigation and a clean hacker-style UI.",
+        stack: "Rasi, shell scripts, icon packs",
+        highlights: [
+          "Arch-inspired color palette",
+          "Compact keyboard-friendly layouts",
+          "Consistent theme integration with Hyprland and Waybar"
+        ]
+      }
+    };
+
+    const fileSystem = {
+      "~": {
+        type: "dir",
+        children: {
+          "about.txt": {
+            type: "file",
+            content: "Vivek Kale\nArch Linux user, developer, and desktop customization enthusiast."
+          },
+          "contact.txt": {
+            type: "file",
+            content: `Email: ${emailAddress}\nGitHub: ${githubUrl}\nLinkedIn: ${linkedinUrl}`
+          },
+          "resume.txt": {
+            type: "file",
+            content: "Vivek Kale Resume\nSkills: C, C++, Python, Git, Linux\nFocus: Linux workflows, customization, developer tooling"
+          },
+          projects: {
+            type: "dir",
+            children: {
+              "hyprland.txt": {
+                type: "file",
+                content: "Hyprland Setup\nA tuned Arch Linux desktop with keyboard-first navigation."
+              },
+              "waybar.txt": {
+                type: "file",
+                content: "Waybar Customization\nA clean, modular bar focused on status and speed."
+              },
+              "rofi.txt": {
+                type: "file",
+                content: "Rofi Themes\nLauncher themes that match the rest of the desktop stack."
+              }
+            }
+          },
+          docs: {
+            type: "dir",
+            children: {
+              "now.txt": {
+                type: "file",
+                content: "Currently refining Linux setups, terminal interfaces, and frontend polish."
+              },
+              "skills.txt": {
+                type: "file",
+                content: "C\nC++\nPython\nGit\nLinux"
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const baseCommands = [
       "help",
+      "banner",
       "whoami",
+      "about",
       "skills",
       "projects",
+      "project hyprland",
+      "project waybar",
+      "project rofi",
       "setup",
       "sysinfo",
+      "fetch",
+      "experience",
+      "journey",
+      "now",
+      "contact",
+      "socials",
+      "resume",
       "github",
+      "linkedin",
+      "email",
+      "ls",
+      "cd projects",
+      "cat about.txt",
+      "pwd",
+      "man help",
       "theme dark",
       "theme light",
       "sound on",
       "sound off",
+      "speed slow",
+      "speed normal",
+      "speed fast",
       "pacman install portfolio",
+      "pacman -Syu",
+      "cowsay vivek",
+      "matrix",
+      "sudo rm -rf /",
       "clear"
     ];
 
@@ -559,41 +736,85 @@
     ];
 
     const state = {
-      history: [],
+      history: JSON.parse(localStorage.getItem("portfolio-history") || "[]").slice(-50),
       historyIndex: 0,
       input: null,
+      ghost: null,
       suggestions: null,
       theme: localStorage.getItem("portfolio-theme") || "dark",
       soundEnabled: localStorage.getItem("portfolio-sound") === "on",
+      typingSpeed: localStorage.getItem("portfolio-speed") || "normal",
       audioContext: null,
       bootTime: Date.now(),
-      isBusy: false
+      isBusy: false,
+      cancelRequested: false,
+      currentDir: "~",
+      tabMatches: [],
+      tabIndex: 0
     };
 
-    const commandOutputs = {
+    const staticCommandOutputs = {
       whoami: [
         '<span class="accent-text">Vivek Kale</span>',
-        'Arch Linux user, developer, and terminal customization enthusiast.',
-        'Focused on clean tooling, Linux workflows, and polished desktop setups.'
+        "Arch Linux user, developer, and terminal customization enthusiast.",
+        "Focused on clean tooling, Linux workflows, and polished desktop setups."
+      ],
+      about: [
+        '<span class="accent-text">About</span>',
+        "I enjoy building smooth developer experiences, customizing Linux desktops, and creating interfaces that feel intentional and fast.",
+        "This portfolio is designed like a fake shell because that matches how I like to work: direct, keyboard-first, and clean."
       ],
       skills: [
         '<span class="accent-text">Programming Stack</span>',
         '<div class="list">- C\n- C++\n- Python\n- Git\n- Linux</div>'
       ],
-      projects: [
-        '<span class="accent-text">Projects</span>',
-        '<div class="list">- Hyprland setup\n- Waybar customization\n- Rofi themes</div>'
-      ],
       setup: [
         '<span class="accent-text">System Setup</span>',
-        '<div class="list">- OS: Arch Linux\n- WM: Hyprland\n- Status Bar: Waybar\n- Launcher: Rofi</div>'
+        '<div class="list">- OS: Arch Linux\n- WM: Hyprland\n- Status Bar: Waybar\n- Launcher: Rofi\n- Shell: zsh</div>'
+      ],
+      now: [
+        '<span class="accent-text">Now</span>',
+        "Currently refining Linux setups, terminal interfaces, and frontend polish with a strong focus on workflow speed."
+      ],
+      experience: [
+        '<span class="accent-text">Experience Snapshot</span>',
+        '<div class="list">- Linux customization and configuration workflows\n- Terminal-first developer environments\n- Frontend polish for interactive personal projects</div>'
+      ],
+      journey: [
+        '<span class="accent-text">Journey</span>',
+        "Started with Linux customization, then kept digging deeper into tooling, automation, and building interfaces that feel like home."
+      ],
+      contact: [
+        '<span class="accent-text">Contact</span>',
+        `<div class="list">- Email: ${emailAddress}\n- GitHub: ${githubUrl}\n- LinkedIn: ${linkedinUrl}</div>`
+      ],
+      socials: [
+        '<span class="accent-text">Social Links</span>',
+        `<div class="list">- GitHub: ${githubUrl}\n- LinkedIn: ${linkedinUrl}</div>`
       ],
       help: [
         '<span class="accent-text">Available Commands</span>',
-        '<div class="help-grid">- whoami\n- skills\n- projects\n- setup\n- sysinfo\n- github\n- theme dark\n- theme light\n- sound on\n- sound off\n- pacman install portfolio\n- clear\n- help</div>',
-        'Use <span class="shortcut">ArrowUp</span> and <span class="shortcut">ArrowDown</span> for history. Press <span class="shortcut">Tab</span> to accept a suggestion.'
+        '<div class="help-grid">- banner, whoami, about, skills, projects, project &lt;name&gt;\n- setup, sysinfo, fetch, experience, journey, now\n- contact, socials, resume, github, linkedin, email\n- ls, cd &lt;dir&gt;, pwd, cat &lt;file&gt;\n- theme dark|light, sound on|off, speed slow|normal|fast\n- pacman install portfolio, pacman -Syu, cowsay vivek, matrix\n- man &lt;command&gt;, clear</div>',
+        'Use <span class="shortcut">ArrowUp</span> and <span class="shortcut">ArrowDown</span> for history, <span class="shortcut">Tab</span> for autocomplete, <span class="shortcut">Ctrl+L</span> to clear, and <span class="shortcut">Ctrl+C</span> to stop active animations.'
       ]
     };
+
+    const manPages = {
+      help: "help: prints the command list and shell shortcuts.",
+      project: "project <name>: shows detailed information about a specific project.",
+      ls: "ls: lists files and directories in the current fake filesystem path.",
+      cd: "cd <dir>: changes the fake current directory.",
+      cat: "cat <file>: prints a file from the fake filesystem.",
+      theme: "theme dark|light: switches the portfolio color scheme.",
+      sound: "sound on|off: toggles optional synthesized typing sounds.",
+      speed: "speed slow|normal|fast: adjusts typing animation speed.",
+      matrix: "matrix: prints a short fake matrix rain block.",
+      resume: "resume: prints a resume summary and starts a text download."
+    };
+
+    function getPromptMarkup() {
+      return `<span class="accent">vivek@archlinux</span>:<span class="muted">${state.currentDir}</span>$`;
+    }
 
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
@@ -609,6 +830,7 @@
       state.theme = theme === "light" ? "light" : "dark";
       document.body.classList.toggle("light-theme", state.theme === "light");
       themeToggle.textContent = `theme: ${state.theme}`;
+      document.querySelector('meta[name="theme-color"]').setAttribute("content", state.theme === "light" ? "#edf5fb" : "#0d1117");
       localStorage.setItem("portfolio-theme", state.theme);
     }
 
@@ -616,6 +838,16 @@
       state.soundEnabled = enabled;
       soundStatus.textContent = `sound: ${enabled ? "on" : "off"}`;
       localStorage.setItem("portfolio-sound", enabled ? "on" : "off");
+    }
+
+    function setSpeed(mode) {
+      state.typingSpeed = speedMap[mode] ? mode : "normal";
+      speedStatus.textContent = `speed: ${state.typingSpeed}`;
+      localStorage.setItem("portfolio-speed", state.typingSpeed);
+    }
+
+    function updateTitle() {
+      terminalTitle.textContent = `vivek@archlinux: ${state.currentDir}`;
     }
 
     function ensureAudioContext() {
@@ -649,12 +881,54 @@
       oscillator.stop(audioContext.currentTime + 0.055);
     }
 
+    function saveHistory() {
+      localStorage.setItem("portfolio-history", JSON.stringify(state.history.slice(-50)));
+    }
+
+    function getNode(path) {
+      const parts = path === "~" ? [] : path.replace(/^~\//, "").split("/").filter(Boolean);
+      let current = fileSystem["~"];
+
+      for (const part of parts) {
+        if (!current.children?.[part]) {
+          return null;
+        }
+        current = current.children[part];
+      }
+
+      return current;
+    }
+
+    function resolvePath(inputPath) {
+      if (!inputPath || inputPath === "~") return "~";
+      if (inputPath.startsWith("~/")) return inputPath;
+      if (inputPath === "..") {
+        if (state.currentDir === "~") return "~";
+        const segments = state.currentDir.replace(/^~\//, "").split("/").filter(Boolean);
+        segments.pop();
+        return segments.length ? `~/${segments.join("/")}` : "~";
+      }
+      return state.currentDir === "~" ? `~/${inputPath}` : `${state.currentDir}/${inputPath}`;
+    }
+
+    function listDir(path) {
+      const node = getNode(path);
+      if (!node || node.type !== "dir") return null;
+      return Object.keys(node.children).sort();
+    }
+
+    function readFile(path) {
+      const node = getNode(path);
+      if (!node || node.type !== "file") return null;
+      return node.content;
+    }
+
     function getSuggestionMatches(inputValue) {
       const normalized = inputValue.trim().toLowerCase();
       if (!normalized) {
-        return commandList.slice(0, 5);
+        return baseCommands.slice(0, 8);
       }
-      return commandList.filter((command) => command.startsWith(normalized)).slice(0, 5);
+      return baseCommands.filter((command) => command.startsWith(normalized)).slice(0, 8);
     }
 
     function clearSuggestions() {
@@ -662,9 +936,20 @@
       state.suggestions = null;
     }
 
+    function updateGhostText(value) {
+      if (!state.ghost) return;
+      const firstMatch = getSuggestionMatches(value)[0];
+      if (firstMatch && firstMatch.startsWith(value) && value.length > 0) {
+        state.ghost.textContent = firstMatch;
+      } else {
+        state.ghost.textContent = "";
+      }
+    }
+
     function acceptSuggestion(value) {
       if (!state.input) return;
       state.input.value = value;
+      updateGhostText(value);
       renderSuggestions(value);
       state.input.focus();
     }
@@ -673,7 +958,11 @@
       clearSuggestions();
       if (!state.input) return;
 
+      updateGhostText(inputValue);
+
       const matches = getSuggestionMatches(inputValue);
+      state.tabMatches = matches;
+      state.tabIndex = 0;
       if (!matches.length) return;
 
       const container = document.createElement("div");
@@ -700,7 +989,7 @@
       if (options.prompt) {
         const prompt = document.createElement("div");
         prompt.className = "prompt";
-        prompt.innerHTML = promptMarkup;
+        prompt.innerHTML = getPromptMarkup();
         line.appendChild(prompt);
       }
 
@@ -716,11 +1005,15 @@
       return text;
     }
 
-    async function typeOutput(content, speed = 11, className = "") {
+    async function typeOutput(content, speed = speedMap[state.typingSpeed], className = "") {
       const target = addOutput("", { className });
       target.classList.add("typewriter");
 
       for (let index = 0; index < content.length; index += 1) {
+        if (state.cancelRequested) {
+          target.innerHTML = `${content.slice(0, index)}<span class="warning-text">^C</span>`;
+          break;
+        }
         target.innerHTML = content.slice(0, index + 1);
         if (index % 2 === 0) {
           playTypeSound();
@@ -743,10 +1036,13 @@
 
       const prompt = document.createElement("div");
       prompt.className = "prompt";
-      prompt.innerHTML = promptMarkup;
+      prompt.innerHTML = getPromptMarkup();
 
       const inputWrap = document.createElement("div");
       inputWrap.className = "line-content";
+
+      const ghost = document.createElement("div");
+      ghost.className = "ghost-text";
 
       const input = document.createElement("input");
       input.className = "terminal-input";
@@ -763,13 +1059,14 @@
         setTimeout(() => input.focus(), 0);
       });
 
-      inputWrap.appendChild(input);
+      inputWrap.append(ghost, input);
       inputWrap.insertAdjacentHTML("beforeend", '<span class="cursor" aria-hidden="true"></span>');
       row.append(prompt, inputWrap);
       wrapper.appendChild(row);
       terminalOutput.appendChild(wrapper);
 
       state.input = input;
+      state.ghost = ghost;
       state.historyIndex = state.history.length;
       renderSuggestions("");
       scrollToBottom();
@@ -783,6 +1080,7 @@
         current.remove();
       }
       state.input = null;
+      state.ghost = null;
     }
 
     function printCommand(command) {
@@ -798,6 +1096,37 @@
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
       return `${minutes}m ${seconds}s`;
+    }
+
+    function downloadResume() {
+      const content = [
+        "Vivek Kale",
+        "Arch Linux user, developer, and terminal customization enthusiast",
+        "",
+        "Skills",
+        "- C",
+        "- C++",
+        "- Python",
+        "- Git",
+        "- Linux",
+        "",
+        "Projects",
+        "- Hyprland Setup",
+        "- Waybar Customization",
+        "- Rofi Themes",
+        "",
+        `Email: ${emailAddress}`,
+        `GitHub: ${githubUrl}`,
+        `LinkedIn: ${linkedinUrl}`
+      ].join("\n");
+
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "vivek-kale-resume.txt";
+      anchor.click();
+      URL.revokeObjectURL(url);
     }
 
     async function runPacmanAnimation() {
@@ -819,6 +1148,21 @@
       }
     }
 
+    async function runSystemUpgradeAnimation() {
+      const lines = [
+        ":: Synchronizing package databases...",
+        " core downloading...",
+        " extra downloading...",
+        " community downloading...",
+        ":: Starting full system upgrade...",
+        " there is nothing to do, your rice is already elite"
+      ];
+
+      for (const line of lines) {
+        await typeOutput(line, 9, line.includes("elite") ? "success-text" : "");
+      }
+    }
+
     async function showSystemInfo() {
       const lines = [
         '<span class="accent-text">Vivek@archlinux</span>',
@@ -827,6 +1171,7 @@
         `<div class="info-card"><span class="inline-strong">Shell</span> zsh</div>`,
         `<div class="info-card"><span class="inline-strong">WM</span> Hyprland</div>`,
         `<div class="info-card"><span class="inline-strong">Terminal</span> portfolio-shell</div>`,
+        `<div class="info-card"><span class="inline-strong">Theme</span> ${state.theme}</div>`,
         `<div class="info-card"><span class="inline-strong">Uptime</span> ${formatUptime()}</div>`
       ];
 
@@ -835,61 +1180,232 @@
       }
     }
 
-    async function handleCommand(rawCommand) {
-      const command = normalizeCommand(rawCommand);
+    async function showProjectsSummary() {
+      await typeOutput('<span class="accent-text">Projects</span>');
+      await typeOutput('<div class="project-grid"><div class="panel-card"><span class="inline-strong">Hyprland Setup</span><span class="muted">Type: project hyprland</span></div><div class="panel-card"><span class="inline-strong">Waybar Customization</span><span class="muted">Type: project waybar</span></div><div class="panel-card"><span class="inline-strong">Rofi Themes</span><span class="muted">Type: project rofi</span></div></div>', 6);
+    }
 
-      if (!command) {
+    async function showProject(name) {
+      const project = projectsData[name];
+      if (!project) {
+        await typeOutput(`project not found: ${name}`, 10, "error-text");
         return;
       }
 
-      if (command === "clear") {
+      const lines = [
+        `<span class="accent-text">${project.title}</span>`,
+        `<div class="panel-card"><span class="inline-strong">Summary</span>${project.summary}</div>`,
+        `<div class="panel-card"><span class="inline-strong">Stack</span>${project.stack}</div>`,
+        `<div class="panel-card"><span class="inline-strong">Highlights</span>${project.highlights.map((item) => `- ${item}`).join("<br>")}</div>`
+      ];
+
+      for (const line of lines) {
+        await typeOutput(line, 8);
+      }
+    }
+
+    async function showBanner() {
+      await typeOutput(`<span class="ascii">${archLogo.replace(/\n/g, "<br>")}</span>`, 5);
+      await typeOutput("Vivek Kale's interactive Arch Linux portfolio");
+    }
+
+    async function showCowsay(text) {
+      const bubble = [
+        ` ${"_".repeat(text.length + 2)}`,
+        `< ${text} >`,
+        ` ${"-".repeat(text.length + 2)}`,
+        "        \\   ^__^",
+        "         \\  (oo)\\_______",
+        "            (__)\\       )\\/\\",
+        "                ||----w |",
+        "                ||     ||"
+      ].join("<br>");
+      await typeOutput(`<span class="ascii">${bubble}</span>`, 3);
+    }
+
+    async function showMatrix() {
+      const rows = Array.from({ length: 8 }, () =>
+        Array.from({ length: 36 }, () => (Math.random() > 0.5 ? "1" : "0")).join(" ")
+      ).join("<br>");
+      await typeOutput(`<span class="matrix">${rows}</span>`, 2);
+    }
+
+    async function executeFileSystemCommand(command, args) {
+      if (command === "pwd") {
+        await typeOutput(state.currentDir);
+        return true;
+      }
+
+      if (command === "ls") {
+        const path = resolvePath(args[0] || "");
+        const entries = listDir(path);
+        if (!entries) {
+          await typeOutput(`ls: cannot access '${args[0] || state.currentDir}': No such directory`, 10, "error-text");
+          return true;
+        }
+        await typeOutput(entries.join("    "));
+        return true;
+      }
+
+      if (command === "cd") {
+        const target = args[0] || "~";
+        const path = resolvePath(target);
+        const node = getNode(path);
+        if (!node || node.type !== "dir") {
+          await typeOutput(`cd: no such directory: ${target}`, 10, "error-text");
+          return true;
+        }
+        state.currentDir = path;
+        updateTitle();
+        return true;
+      }
+
+      if (command === "cat") {
+        if (!args[0]) {
+          await typeOutput("cat: missing file operand", 10, "error-text");
+          return true;
+        }
+        const path = resolvePath(args[0]);
+        const content = readFile(path);
+        if (content === null) {
+          await typeOutput(`cat: ${args[0]}: No such file`, 10, "error-text");
+          return true;
+        }
+        await typeOutput(content);
+        return true;
+      }
+
+      return false;
+    }
+
+    async function handleCommand(rawCommand) {
+      const command = normalizeCommand(rawCommand);
+      if (!command) return;
+
+      const [base, ...args] = command.split(" ");
+      const lowerCommand = command.toLowerCase();
+
+      if (lowerCommand === "clear") {
         terminalOutput.innerHTML = "";
         return;
       }
 
-      if (command === "github") {
+      if (await executeFileSystemCommand(base, args)) {
+        return;
+      }
+
+      if (lowerCommand === "banner") {
+        await showBanner();
+        return;
+      }
+
+      if (lowerCommand === "github") {
         addOutput(`Opening GitHub profile: <span class="accent-text">${githubUrl}</span>`);
         window.open(githubUrl, "_blank", "noopener,noreferrer");
         return;
       }
 
-      if (command === "sysinfo") {
+      if (lowerCommand === "linkedin") {
+        addOutput(`Opening LinkedIn profile: <span class="accent-text">${linkedinUrl}</span>`);
+        window.open(linkedinUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      if (lowerCommand === "email") {
+        addOutput(`Opening mail client for <span class="accent-text">${emailAddress}</span>`);
+        window.location.href = `mailto:${emailAddress}`;
+        return;
+      }
+
+      if (lowerCommand === "sysinfo" || lowerCommand === "fetch") {
         await showSystemInfo();
         return;
       }
 
-      if (command === "sound on") {
+      if (lowerCommand === "projects") {
+        await showProjectsSummary();
+        return;
+      }
+
+      if (lowerCommand.startsWith("project ")) {
+        await showProject(args[0]);
+        return;
+      }
+
+      if (lowerCommand === "resume") {
+        await typeOutput('<span class="accent-text">Resume</span>');
+        await typeOutput(`Summary ready. Download starting as <span class="warning-text">vivek-kale-resume.txt</span>.`);
+        downloadResume();
+        return;
+      }
+
+      if (lowerCommand.startsWith("man ")) {
+        const page = args[0];
+        if (manPages[page]) {
+          await typeOutput(manPages[page]);
+        } else {
+          await typeOutput(`No manual entry for ${page}`, 10, "error-text");
+        }
+        return;
+      }
+
+      if (lowerCommand === "sound on") {
         setSound(true);
         await typeOutput("typing sound enabled", 10, "success-text");
         return;
       }
 
-      if (command === "sound off") {
+      if (lowerCommand === "sound off") {
         setSound(false);
         await typeOutput("typing sound disabled", 10, "warning-text");
         return;
       }
 
-      if (command === "theme dark" || command === "theme light") {
-        const nextTheme = command.endsWith("light") ? "light" : "dark";
-        setTheme(nextTheme);
-        await typeOutput(`switched to ${nextTheme} theme`, 10, "success-text");
+      if (lowerCommand === "theme dark" || lowerCommand === "theme light") {
+        setTheme(lowerCommand.endsWith("light") ? "light" : "dark");
+        await typeOutput(`switched to ${state.theme} theme`, 10, "success-text");
         return;
       }
 
-      if (command === "pacman install portfolio") {
+      if (lowerCommand === "speed slow" || lowerCommand === "speed normal" || lowerCommand === "speed fast") {
+        setSpeed(args[0]);
+        await typeOutput(`typing speed set to ${state.typingSpeed}`, 10, "success-text");
+        return;
+      }
+
+      if (lowerCommand === "pacman install portfolio") {
         await runPacmanAnimation();
         return;
       }
 
-      if (commandOutputs[command]) {
-        for (const line of commandOutputs[command]) {
+      if (lowerCommand === "pacman -syu") {
+        await runSystemUpgradeAnimation();
+        return;
+      }
+
+      if (lowerCommand === "cowsay vivek") {
+        await showCowsay("vivek uses arch btw");
+        return;
+      }
+
+      if (lowerCommand === "matrix") {
+        await showMatrix();
+        return;
+      }
+
+      if (lowerCommand === "sudo rm -rf /") {
+        await typeOutput("permission denied: nice try", 10, "warning-text");
+        return;
+      }
+
+      if (staticCommandOutputs[lowerCommand]) {
+        for (const line of staticCommandOutputs[lowerCommand]) {
           await typeOutput(line);
         }
         return;
       }
 
-      const suggestion = getSuggestionMatches(command)[0];
+      const suggestion = getSuggestionMatches(lowerCommand)[0];
       const suffix = suggestion ? ` Did you mean <span class="command-tag">${suggestion}</span>?` : "";
       await typeOutput(`command not found: ${command}.${suffix}`, 10, "error-text");
     }
@@ -897,15 +1413,19 @@
     async function submitCommand(value) {
       if (state.isBusy) return;
       state.isBusy = true;
+      state.cancelRequested = false;
+
       const command = value.trim();
       removeInputRow();
       printCommand(command);
 
       if (command) {
         state.history.push(command);
+        saveHistory();
       }
 
       await handleCommand(command);
+      state.cancelRequested = false;
       createInputRow();
       state.isBusy = false;
     }
@@ -920,11 +1440,30 @@
       }
 
       if (event.key === "Tab") {
-        const match = getSuggestionMatches(input.value)[0];
-        if (match) {
-          event.preventDefault();
-          input.value = match;
-          renderSuggestions(match);
+        event.preventDefault();
+        if (!state.tabMatches.length) return;
+        const match = state.tabMatches[state.tabIndex % state.tabMatches.length];
+        input.value = match;
+        state.tabIndex += 1;
+        updateGhostText(match);
+        renderSuggestions(match);
+        return;
+      }
+
+      if (event.ctrlKey && event.key.toLowerCase() === "l") {
+        event.preventDefault();
+        terminalOutput.innerHTML = "";
+        createInputRow();
+        return;
+      }
+
+      if (event.ctrlKey && event.key.toLowerCase() === "c") {
+        event.preventDefault();
+        state.cancelRequested = true;
+        addOutput("<span class='warning-text'>^C</span>");
+        if (!state.isBusy) {
+          input.value = "";
+          renderSuggestions("");
         }
         return;
       }
@@ -953,18 +1492,17 @@
         row.textContent = line;
         bootLog.appendChild(row);
         bootLog.scrollTop = bootLog.scrollHeight;
-        await sleep(line ? 150 : 100);
+        await sleep(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 10 : line ? 150 : 100);
       }
 
-      await sleep(500);
+      await sleep(300);
       bootScreen.classList.add("hidden");
       terminalScreen.classList.remove("hidden");
       createInputRow();
     }
 
     themeToggle.addEventListener("click", () => {
-      const nextTheme = state.theme === "dark" ? "light" : "dark";
-      setTheme(nextTheme);
+      setTheme(state.theme === "dark" ? "light" : "dark");
       state.input?.focus();
     });
 
@@ -980,6 +1518,8 @@
 
     setTheme(state.theme);
     setSound(state.soundEnabled);
+    setSpeed(state.typingSpeed);
+    updateTitle();
     runBootSequence();
   </script>
 </body>
