@@ -206,12 +206,15 @@
       transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
     }
 
-    .theme-button {
+    .theme-button,
+    .status-button {
       cursor: pointer;
     }
 
     .theme-button:hover,
     .theme-button:focus-visible,
+    .status-button:hover,
+    .status-button:focus-visible,
     .suggestion-chip:hover,
     .suggestion-chip:focus-visible {
       transform: translateY(-1px);
@@ -540,7 +543,7 @@
         </div>
         <div class="terminal-title" id="terminal-title">vivek@archlinux: ~/portfolio</div>
         <div class="terminal-actions">
-          <span class="status-pill" id="sound-status">sound: off</span>
+          <button class="status-pill status-button" id="sound-status" type="button" aria-label="Toggle typing sound">sound: off</button>
           <span class="status-pill" id="speed-status">speed: normal</span>
           <button class="theme-button" id="theme-toggle" type="button" aria-label="Toggle theme">theme: dark</button>
         </div>
@@ -708,7 +711,11 @@
       "cowsay vivek",
       "matrix",
       "sudo rm -rf /",
-      "clear"
+      "clear",
+      "cls",
+      "info",
+      "bio",
+      "repo"
     ];
 
     const archLogo = [
@@ -812,6 +819,13 @@
       resume: "resume: prints a resume summary and starts a text download."
     };
 
+    const aliases = {
+      cls: "clear",
+      info: "sysinfo",
+      bio: "about",
+      repo: "github"
+    };
+
     function getPromptMarkup() {
       return `<span class="accent">vivek@archlinux</span>:<span class="muted">${state.currentDir}</span>$`;
     }
@@ -883,6 +897,15 @@
 
     function saveHistory() {
       localStorage.setItem("portfolio-history", JSON.stringify(state.history.slice(-50)));
+    }
+
+    async function typeLines(lines, speed, className) {
+      for (const line of lines) {
+        await typeOutput(line, speed, className);
+        if (state.cancelRequested) {
+          break;
+        }
+      }
     }
 
     function getNode(path) {
@@ -1084,6 +1107,7 @@
     }
 
     function printCommand(command) {
+      if (!command) return;
       addOutput(command, { prompt: true });
     }
 
@@ -1143,8 +1167,10 @@
         ":: portfolio installed successfully"
       ];
 
-      for (const line of packages) {
-        await typeOutput(line, 7, line.includes("successfully") ? "success-text" : "");
+      await typeLines(packages, 7);
+      if (!state.cancelRequested) {
+        const successLine = terminalOutput.querySelector(".output-line:last-child .line-content");
+        successLine?.classList.add("success-text");
       }
     }
 
@@ -1158,8 +1184,10 @@
         " there is nothing to do, your rice is already elite"
       ];
 
-      for (const line of lines) {
-        await typeOutput(line, 9, line.includes("elite") ? "success-text" : "");
+      await typeLines(lines, 9);
+      if (!state.cancelRequested) {
+        const successLine = terminalOutput.querySelector(".output-line:last-child .line-content");
+        successLine?.classList.add("success-text");
       }
     }
 
@@ -1175,9 +1203,7 @@
         `<div class="info-card"><span class="inline-strong">Uptime</span> ${formatUptime()}</div>`
       ];
 
-      for (const line of lines) {
-        await typeOutput(line, 8);
-      }
+      await typeLines(lines, 8);
     }
 
     async function showProjectsSummary() {
@@ -1199,9 +1225,7 @@
         `<div class="panel-card"><span class="inline-strong">Highlights</span>${project.highlights.map((item) => `- ${item}`).join("<br>")}</div>`
       ];
 
-      for (const line of lines) {
-        await typeOutput(line, 8);
-      }
+      await typeLines(lines, 8);
     }
 
     async function showBanner() {
@@ -1282,8 +1306,9 @@
       const command = normalizeCommand(rawCommand);
       if (!command) return;
 
-      const [base, ...args] = command.split(" ");
-      const lowerCommand = command.toLowerCase();
+      const expandedCommand = aliases[command.toLowerCase()] || command;
+      const [base, ...args] = expandedCommand.split(" ");
+      const lowerCommand = expandedCommand.toLowerCase();
 
       if (lowerCommand === "clear") {
         terminalOutput.innerHTML = "";
@@ -1399,15 +1424,13 @@
       }
 
       if (staticCommandOutputs[lowerCommand]) {
-        for (const line of staticCommandOutputs[lowerCommand]) {
-          await typeOutput(line);
-        }
+        await typeLines(staticCommandOutputs[lowerCommand]);
         return;
       }
 
       const suggestion = getSuggestionMatches(lowerCommand)[0];
       const suffix = suggestion ? ` Did you mean <span class="command-tag">${suggestion}</span>?` : "";
-      await typeOutput(`command not found: ${command}.${suffix}`, 10, "error-text");
+      await typeOutput(`command not found: ${expandedCommand}.${suffix}`, 10, "error-text");
     }
 
     async function submitCommand(value) {
@@ -1503,6 +1526,11 @@
 
     themeToggle.addEventListener("click", () => {
       setTheme(state.theme === "dark" ? "light" : "dark");
+      state.input?.focus();
+    });
+
+    soundStatus.addEventListener("click", () => {
+      setSound(!state.soundEnabled);
       state.input?.focus();
     });
 
