@@ -79,9 +79,10 @@
 
     .screen {
       min-height: 100vh;
+      min-height: 100dvh;
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
     }
 
     .hidden {
@@ -469,7 +470,7 @@
       }
 
       .terminal-shell {
-        height: calc(100vh - 24px);
+        height: calc(100dvh - 24px);
       }
 
       .terminal-header {
@@ -544,8 +545,8 @@
         <div class="terminal-title" id="terminal-title">vivek@archlinux: ~/portfolio</div>
         <div class="terminal-actions">
           <button class="status-pill status-button" id="sound-status" type="button" aria-label="Toggle typing sound">sound: off</button>
-          <span class="status-pill" id="speed-status">speed: normal</span>
-          <button class="theme-button" id="theme-toggle" type="button" aria-label="Toggle theme">theme: dark</button>
+          <button class="status-pill status-button" id="speed-status" type="button" aria-label="Cycle typing speed">speed: normal</button>
+          <button class="theme-button" id="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">theme: dark</button>
         </div>
       </header>
 
@@ -715,7 +716,8 @@
       "cls",
       "info",
       "bio",
-      "repo"
+      "repo",
+      "history"
     ];
 
     const archLogo = [
@@ -816,7 +818,8 @@
       sound: "sound on|off: toggles optional synthesized typing sounds.",
       speed: "speed slow|normal|fast: adjusts typing animation speed.",
       matrix: "matrix: prints a short fake matrix rain block.",
-      resume: "resume: prints a resume summary and starts a text download."
+      resume: "resume: prints a resume summary and starts a text download.",
+      history: "history: prints the most recent commands used in this terminal."
     };
 
     const aliases = {
@@ -844,6 +847,7 @@
       state.theme = theme === "light" ? "light" : "dark";
       document.body.classList.toggle("light-theme", state.theme === "light");
       themeToggle.textContent = `theme: ${state.theme}`;
+      themeToggle.setAttribute("aria-pressed", String(state.theme === "light"));
       document.querySelector('meta[name="theme-color"]').setAttribute("content", state.theme === "light" ? "#edf5fb" : "#0d1117");
       localStorage.setItem("portfolio-theme", state.theme);
     }
@@ -851,6 +855,7 @@
     function setSound(enabled) {
       state.soundEnabled = enabled;
       soundStatus.textContent = `sound: ${enabled ? "on" : "off"}`;
+      soundStatus.setAttribute("aria-pressed", String(enabled));
       localStorage.setItem("portfolio-sound", enabled ? "on" : "off");
     }
 
@@ -1260,6 +1265,12 @@
         return true;
       }
 
+      if (command === "history") {
+        const recent = state.history.slice(-10);
+        await typeOutput(recent.length ? recent.map((item, index) => `${index + 1}  ${item}`).join("<br>") : "history is empty");
+        return true;
+      }
+
       if (command === "ls") {
         const path = resolvePath(args[0] || "");
         const entries = listDir(path);
@@ -1531,6 +1542,13 @@
 
     soundStatus.addEventListener("click", () => {
       setSound(!state.soundEnabled);
+      state.input?.focus();
+    });
+
+    speedStatus.addEventListener("click", () => {
+      const order = ["slow", "normal", "fast"];
+      const next = order[(order.indexOf(state.typingSpeed) + 1) % order.length];
+      setSpeed(next);
       state.input?.focus();
     });
 
