@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vivek Kale | Arch Terminal Portfolio</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-elevated: rgba(17, 24, 39, 0.9);
+      --panel: #111827;
+      --panel-strong: rgba(8, 12, 18, 0.88);
+      --panel-border: rgba(23, 147, 209, 0.28);
+      --accent: #1793d1;
+      --accent-soft: rgba(23, 147, 209, 0.14);
+      --text: #d6e2f0;
+      --muted: #8ba3b8;
+      --success: #3fb950;
+      --warning: #d29922;
+      --danger: #ff7b72;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.42);
+      --radius: 20px;
+      --font: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+      --scanline-opacity: 0.12;
+    }
+
+    body.light-theme {
+      --bg: #edf5fb;
+      --bg-elevated: rgba(255, 255, 255, 0.88);
+      --panel: #ffffff;
+      --panel-strong: rgba(241, 247, 252, 0.92);
+      --panel-border: rgba(23, 147, 209, 0.22);
+      --accent: #0f78b8;
+      --accent-soft: rgba(15, 120, 184, 0.14);
+      --text: #102433;
+      --muted: #557286;
+      --success: #1f9d55;
+      --warning: #a86800;
+      --danger: #cc3c33;
+      --shadow: 0 20px 60px rgba(15, 46, 68, 0.18);
+      --scanline-opacity: 0.05;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(23, 147, 209, 0.16), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(63, 185, 80, 0.08), transparent 24%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      overflow: hidden;
+      transition: background 300ms ease, color 220ms ease;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 3px;
+      opacity: var(--scanline-opacity);
+    }
+
+    .screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .boot,
+    .terminal-shell {
+      width: min(1040px, 100%);
+      border-radius: var(--radius);
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+    }
+
+    .boot {
+      padding: 28px;
+      background: linear-gradient(180deg, var(--bg-elevated), rgba(13, 17, 23, 0.96));
+      animation: fade-up 700ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .boot__title {
+      color: var(--accent);
+      font-size: clamp(1.1rem, 2vw, 1.45rem);
+      margin-bottom: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .boot__logo {
+      margin: 0 0 18px;
+      color: var(--accent);
+      line-height: 1.15;
+      font-size: clamp(0.62rem, 1.6vw, 0.84rem);
+      white-space: pre;
+      animation: glow-pulse 2.4s ease-in-out infinite;
+    }
+
+    .boot__log {
+      min-height: 280px;
+      max-height: 54vh;
+      overflow: auto;
+      line-height: 1.7;
+      font-size: 0.95rem;
+      color: var(--muted);
+      white-space: pre-wrap;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(23, 147, 209, 0.25) transparent;
+    }
+
+    .terminal-shell {
+      height: min(780px, calc(100vh - 48px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--bg-elevated), rgba(13, 17, 23, 0.98));
+      animation: fade-up 600ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .terminal-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      background: var(--panel-strong);
+      border-bottom: 1px solid rgba(23, 147, 209, 0.18);
+    }
+
+    .terminal-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .terminal-controls span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .terminal-controls span:nth-child(1) { background: #ff5f56; }
+    .terminal-controls span:nth-child(2) { background: #ffbd2e; }
+    .terminal-controls span:nth-child(3) { background: #27c93f; }
+
+    .terminal-title {
+      color: var(--muted);
+      font-size: 0.92rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .terminal-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-pill,
+    .theme-button {
+      border: 1px solid rgba(23, 147, 209, 0.22);
+      background: var(--accent-soft);
+      color: var(--text);
+      border-radius: 999px;
+      font: inherit;
+      font-size: 0.78rem;
+      padding: 7px 12px;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+    }
+
+    .theme-button {
+      cursor: pointer;
+    }
+
+    .theme-button:hover,
+    .theme-button:focus-visible {
+      transform: translateY(-1px);
+      background: rgba(23, 147, 209, 0.2);
+      outline: none;
+    }
+
+    .terminal-body {
+      flex: 1;
+      overflow: auto;
+      padding: 22px 18px 28px;
+      position: relative;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(23, 147, 209, 0.25) transparent;
+    }
+
+    .terminal-body::-webkit-scrollbar,
+    .boot__log::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .terminal-body::-webkit-scrollbar-thumb,
+    .boot__log::-webkit-scrollbar-thumb {
+      background: rgba(23, 147, 209, 0.25);
+      border-radius: 999px;
+    }
+
+    .output-line,
+    .input-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      width: 100%;
+      line-height: 1.65;
+      font-size: 0.98rem;
+    }
+
+    .output-line {
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      animation: fade-in 240ms ease;
+    }
+
+    .prompt {
+      flex: 0 0 auto;
+      color: var(--success);
+      user-select: none;
+    }
+
+    .prompt .accent {
+      color: var(--accent);
+    }
+
+    .line-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .accent-text {
+      color: var(--accent);
+    }
+
+    .warning-text {
+      color: var(--warning);
+    }
+
+    .success-text {
+      color: var(--success);
+    }
+
+    .error-text {
+      color: var(--danger);
+    }
+
+    .help-grid,
+    .list {
+      display: grid;
+      gap: 6px;
+      margin: 4px 0;
+    }
+
+    .info-card {
+      display: grid;
+      gap: 2px;
+      padding: 12px 14px;
+      border: 1px solid rgba(23, 147, 209, 0.18);
+      border-radius: 14px;
+      background: rgba(23, 147, 209, 0.05);
+      margin: 4px 0;
+    }
+
+    .typewriter {
+      border-right: 0.65em solid transparent;
+      animation: caret-blink 1s steps(1) infinite;
+    }
+
+    @keyframes caret-blink {
+      50% {
+        border-color: var(--accent);
+      }
+    }
+
+    .input-area {
+      position: sticky;
+      bottom: 0;
+      padding-top: 12px;
+      background: linear-gradient(180deg, transparent, rgba(13, 17, 23, 0.96) 28%);
+    }
+
+    body.light-theme .input-area {
+      background: linear-gradient(180deg, transparent, rgba(237, 245, 251, 0.96) 28%);
+    }
+
+    .input-row .line-content {
+      display: flex;
+      align-items: center;
+      min-height: 1.8rem;
+    }
+
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      border: 0;
+      outline: none;
+      color: var(--text);
+      font: inherit;
+      caret-color: var(--accent);
+      min-width: 0;
+      padding: 0;
+    }
+
+    .terminal-input::placeholder {
+      color: rgba(139, 163, 184, 0.48);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 0.7ch;
+      height: 1.1em;
+      vertical-align: -0.2em;
+      background: var(--accent);
+      margin-left: 2px;
+      border-radius: 1px;
+      animation: blink 1s steps(1) infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      animation: fade-in 180ms ease;
+    }
+
+    .suggestion-chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(23, 147, 209, 0.2);
+      background: rgba(23, 147, 209, 0.08);
+      color: var(--muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .suggestion-chip:hover,
+    .suggestion-chip:focus-visible {
+      color: var(--text);
+      border-color: rgba(23, 147, 209, 0.46);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .ascii {
+      color: var(--accent);
+      line-height: 1.25;
+    }
+
+    .shortcut,
+    .command-tag {
+      color: var(--warning);
+    }
+
+    .inline-strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    @keyframes fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes glow-pulse {
+      50% {
+        text-shadow: 0 0 20px rgba(23, 147, 209, 0.28);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .screen {
+        padding: 12px;
+      }
+
+      .boot,
+      .terminal-shell {
+        border-radius: 16px;
+      }
+
+      .terminal-shell {
+        height: calc(100vh - 24px);
+      }
+
+      .terminal-header {
+        grid-template-columns: 1fr;
+      }
+
+      .terminal-actions {
+        justify-content: space-between;
+      }
+
+      .boot__logo {
+        font-size: 0.5rem;
+      }
+
+      .output-line,
+      .input-row {
+        gap: 8px;
+        font-size: 0.92rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="screen">
+    <section class="boot" id="boot-screen" aria-live="polite">
+      <div class="boot__title">Arch Linux Portfolio Boot</div>
+      <pre class="boot__logo">
+                   -`
+                  .o+`
+                 `ooo/
+                `+oooo:
+               `+oooooo:
+               -+oooooo+:
+             `/:-:++oooo+:
+            `/++++/+++++++:
+           `/++++++++++++++:
+          `/+++ooooooooooooo/`
+         ./ooosssso++osssssso+`
+        .oossssso-````/ossssss+`
+       -osssssso.      :ssssssso.
+      :osssssss/        osssso+++.
+     /ossssssss/        +ssssooo/-
+   `/ossssso+/:-        -:/+osssso+-
+  `+sso+:-`                 `.-/+oso:
+ `++:.                           `-/+/
+ .`                                 `/
+      </pre>
+      <div class="boot__log" id="boot-log"></div>
+    </section>
+
+    <section class="terminal-shell hidden" id="terminal-screen" aria-label="Fake Linux terminal portfolio">
+      <header class="terminal-header">
+        <div class="terminal-controls" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="terminal-title">vivek@archlinux: ~/portfolio</div>
+        <div class="terminal-actions">
+          <span class="status-pill" id="sound-status">sound: off</span>
+          <button class="theme-button" id="theme-toggle" type="button">theme: dark</button>
+        </div>
+      </header>
+
+      <div class="terminal-body" id="terminal-output" tabindex="0">
+        <div class="output-line">
+          <div class="line-content ascii">
+                   /\
+                  /  \
+                 /\   \
+                /      \
+               /   ,,   \
+              /   |  |  -\
+             /_-''    ''-_\
+          </div>
+        </div>
+        <div class="output-line">
+          <div class="line-content">Welcome to Vivek Kale's terminal portfolio. Type <span class="command-tag">help</span> to explore.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const bootScreen = document.getElementById("boot-screen");
+    const bootLog = document.getElementById("boot-log");
+    const terminalScreen = document.getElementById("terminal-screen");
+    const terminalOutput = document.getElementById("terminal-output");
+    const themeToggle = document.getElementById("theme-toggle");
+    const soundStatus = document.getElementById("sound-status");
+
+    const githubUrl = "https://github.com/vivekkale109";
+    const promptMarkup = '<span class="accent">vivek@archlinux</span>:<span class="muted">~/portfolio</span>$';
+    const commandList = [
+      "help",
+      "whoami",
+      "skills",
+      "projects",
+      "setup",
+      "sysinfo",
+      "github",
+      "theme dark",
+      "theme light",
+      "sound on",
+      "sound off",
+      "pacman install portfolio",
+      "clear"
+    ];
+
+    const archLogo = [
+      "                   /\\",
+      "                  /  \\\\",
+      "                 /\\   \\\\",
+      "                /      \\\\",
+      "               /   ,,   \\\\",
+      "              /   |  |  -\\\\",
+      "             /_-''    ''-_\\\\"
+    ].join("\n");
+
+    const bootLines = [
+      ":: loading linux kernel 6.9.3-arch1-1",
+      ":: mounting /boot and /home",
+      ":: applying user profile for vivek",
+      ":: starting network manager",
+      ":: starting hyprland compositor",
+      ":: loading waybar modules",
+      ":: loading rofi themes",
+      ":: initializing terminal portfolio shell",
+      "",
+      "archlinux login: vivek",
+      "Password: ********"
+    ];
+
+    const state = {
+      history: [],
+      historyIndex: 0,
+      input: null,
+      suggestions: null,
+      theme: localStorage.getItem("portfolio-theme") || "dark",
+      soundEnabled: localStorage.getItem("portfolio-sound") === "on",
+      audioContext: null,
+      bootTime: Date.now(),
+      isBusy: false
+    };
+
+    const commandOutputs = {
+      whoami: [
+        '<span class="accent-text">Vivek Kale</span>',
+        'Arch Linux user, developer, and terminal customization enthusiast.',
+        'Focused on clean tooling, Linux workflows, and polished desktop setups.'
+      ],
+      skills: [
+        '<span class="accent-text">Programming Stack</span>',
+        '<div class="list">- C\n- C++\n- Python\n- Git\n- Linux</div>'
+      ],
+      projects: [
+        '<span class="accent-text">Projects</span>',
+        '<div class="list">- Hyprland setup\n- Waybar customization\n- Rofi themes</div>'
+      ],
+      setup: [
+        '<span class="accent-text">System Setup</span>',
+        '<div class="list">- OS: Arch Linux\n- WM: Hyprland\n- Status Bar: Waybar\n- Launcher: Rofi</div>'
+      ],
+      help: [
+        '<span class="accent-text">Available Commands</span>',
+        '<div class="help-grid">- whoami\n- skills\n- projects\n- setup\n- sysinfo\n- github\n- theme dark\n- theme light\n- sound on\n- sound off\n- pacman install portfolio\n- clear\n- help</div>',
+        'Use <span class="shortcut">ArrowUp</span> and <span class="shortcut">ArrowDown</span> for history. Press <span class="shortcut">Tab</span> to accept a suggestion.'
+      ]
+    };
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function scrollToBottom() {
+      requestAnimationFrame(() => {
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+      });
+    }
+
+    function setTheme(theme) {
+      state.theme = theme === "light" ? "light" : "dark";
+      document.body.classList.toggle("light-theme", state.theme === "light");
+      themeToggle.textContent = `theme: ${state.theme}`;
+      localStorage.setItem("portfolio-theme", state.theme);
+    }
+
+    function setSound(enabled) {
+      state.soundEnabled = enabled;
+      soundStatus.textContent = `sound: ${enabled ? "on" : "off"}`;
+      localStorage.setItem("portfolio-sound", enabled ? "on" : "off");
+    }
+
+    function ensureAudioContext() {
+      if (!state.audioContext) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          state.audioContext = new AudioContextClass();
+        }
+      }
+      return state.audioContext;
+    }
+
+    function playTypeSound() {
+      if (!state.soundEnabled) return;
+      const audioContext = ensureAudioContext();
+      if (!audioContext || audioContext.state === "suspended") {
+        audioContext?.resume?.();
+      }
+      if (!audioContext) return;
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = "square";
+      oscillator.frequency.value = 540 + Math.random() * 180;
+      gain.gain.value = 0.0001;
+      gain.gain.exponentialRampToValueAtTime(0.015, audioContext.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.05);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.055);
+    }
+
+    function getSuggestionMatches(inputValue) {
+      const normalized = inputValue.trim().toLowerCase();
+      if (!normalized) {
+        return commandList.slice(0, 5);
+      }
+      return commandList.filter((command) => command.startsWith(normalized)).slice(0, 5);
+    }
+
+    function clearSuggestions() {
+      state.suggestions?.remove();
+      state.suggestions = null;
+    }
+
+    function acceptSuggestion(value) {
+      if (!state.input) return;
+      state.input.value = value;
+      renderSuggestions(value);
+      state.input.focus();
+    }
+
+    function renderSuggestions(inputValue) {
+      clearSuggestions();
+      if (!state.input) return;
+
+      const matches = getSuggestionMatches(inputValue);
+      if (!matches.length) return;
+
+      const container = document.createElement("div");
+      container.className = "suggestions";
+
+      matches.forEach((match) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "suggestion-chip";
+        chip.textContent = match;
+        chip.addEventListener("click", () => acceptSuggestion(match));
+        container.appendChild(chip);
+      });
+
+      const inputArea = document.getElementById("active-input-area");
+      inputArea?.appendChild(container);
+      state.suggestions = container;
+    }
+
+    function addOutput(content, options = {}) {
+      const line = document.createElement("div");
+      line.className = "output-line";
+
+      if (options.prompt) {
+        const prompt = document.createElement("div");
+        prompt.className = "prompt";
+        prompt.innerHTML = promptMarkup;
+        line.appendChild(prompt);
+      }
+
+      const text = document.createElement("div");
+      text.className = "line-content";
+      if (options.className) {
+        text.classList.add(options.className);
+      }
+      text.innerHTML = content;
+      line.appendChild(text);
+      terminalOutput.appendChild(line);
+      scrollToBottom();
+      return text;
+    }
+
+    async function typeOutput(content, speed = 11, className = "") {
+      const target = addOutput("", { className });
+      target.classList.add("typewriter");
+
+      for (let index = 0; index < content.length; index += 1) {
+        target.innerHTML = content.slice(0, index + 1);
+        if (index % 2 === 0) {
+          playTypeSound();
+        }
+        scrollToBottom();
+        await sleep(speed);
+      }
+
+      target.classList.remove("typewriter");
+    }
+
+    function createInputRow() {
+      const wrapper = document.createElement("div");
+      wrapper.className = "input-area";
+      wrapper.id = "active-input-area";
+
+      const row = document.createElement("div");
+      row.className = "input-row";
+      row.id = "active-input-row";
+
+      const prompt = document.createElement("div");
+      prompt.className = "prompt";
+      prompt.innerHTML = promptMarkup;
+
+      const inputWrap = document.createElement("div");
+      inputWrap.className = "line-content";
+
+      const input = document.createElement("input");
+      input.className = "terminal-input";
+      input.type = "text";
+      input.autocomplete = "off";
+      input.autocapitalize = "off";
+      input.spellcheck = false;
+      input.placeholder = "type a command";
+      input.setAttribute("aria-label", "Terminal command input");
+
+      input.addEventListener("keydown", handleInputKeyDown);
+      input.addEventListener("input", () => renderSuggestions(input.value));
+      input.addEventListener("blur", () => {
+        setTimeout(() => input.focus(), 0);
+      });
+
+      inputWrap.appendChild(input);
+      inputWrap.insertAdjacentHTML("beforeend", '<span class="cursor" aria-hidden="true"></span>');
+      row.append(prompt, inputWrap);
+      wrapper.appendChild(row);
+      terminalOutput.appendChild(wrapper);
+
+      state.input = input;
+      state.historyIndex = state.history.length;
+      renderSuggestions("");
+      scrollToBottom();
+      input.focus();
+    }
+
+    function removeInputRow() {
+      clearSuggestions();
+      const current = document.getElementById("active-input-area");
+      if (current) {
+        current.remove();
+      }
+      state.input = null;
+    }
+
+    function printCommand(command) {
+      addOutput(command, { prompt: true });
+    }
+
+    function normalizeCommand(value) {
+      return value.trim().replace(/\s+/g, " ");
+    }
+
+    function formatUptime() {
+      const totalSeconds = Math.floor((Date.now() - state.bootTime) / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}m ${seconds}s`;
+    }
+
+    async function runPacmanAnimation() {
+      const packages = [
+        "resolving dependencies...",
+        "looking for conflicting packages...",
+        "Packages (4) hyprland-1.0.0 waybar-1.0.0 rofi-1.0.0 portfolio-1.0.0",
+        "Total Installed Size:  42.00 MiB",
+        ":: Proceed with installation? [Y/n] Y",
+        "(1/4) checking keys in keyring                     [######################] 100%",
+        "(2/4) checking package integrity                   [######################] 100%",
+        "(3/4) loading package files                        [######################] 100%",
+        "(4/4) installing portfolio                         [######################] 100%",
+        ":: portfolio installed successfully"
+      ];
+
+      for (const line of packages) {
+        await typeOutput(line, 7, line.includes("successfully") ? "success-text" : "");
+      }
+    }
+
+    async function showSystemInfo() {
+      const lines = [
+        '<span class="accent-text">Vivek@archlinux</span>',
+        `<span class="ascii">${archLogo.replace(/\n/g, "<br>")}</span>`,
+        `<div class="info-card"><span class="inline-strong">OS</span> Arch Linux x86_64</div>`,
+        `<div class="info-card"><span class="inline-strong">Shell</span> zsh</div>`,
+        `<div class="info-card"><span class="inline-strong">WM</span> Hyprland</div>`,
+        `<div class="info-card"><span class="inline-strong">Terminal</span> portfolio-shell</div>`,
+        `<div class="info-card"><span class="inline-strong">Uptime</span> ${formatUptime()}</div>`
+      ];
+
+      for (const line of lines) {
+        await typeOutput(line, 8);
+      }
+    }
+
+    async function handleCommand(rawCommand) {
+      const command = normalizeCommand(rawCommand);
+
+      if (!command) {
+        return;
+      }
+
+      if (command === "clear") {
+        terminalOutput.innerHTML = "";
+        return;
+      }
+
+      if (command === "github") {
+        addOutput(`Opening GitHub profile: <span class="accent-text">${githubUrl}</span>`);
+        window.open(githubUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      if (command === "sysinfo") {
+        await showSystemInfo();
+        return;
+      }
+
+      if (command === "sound on") {
+        setSound(true);
+        await typeOutput("typing sound enabled", 10, "success-text");
+        return;
+      }
+
+      if (command === "sound off") {
+        setSound(false);
+        await typeOutput("typing sound disabled", 10, "warning-text");
+        return;
+      }
+
+      if (command === "theme dark" || command === "theme light") {
+        const nextTheme = command.endsWith("light") ? "light" : "dark";
+        setTheme(nextTheme);
+        await typeOutput(`switched to ${nextTheme} theme`, 10, "success-text");
+        return;
+      }
+
+      if (command === "pacman install portfolio") {
+        await runPacmanAnimation();
+        return;
+      }
+
+      if (commandOutputs[command]) {
+        for (const line of commandOutputs[command]) {
+          await typeOutput(line);
+        }
+        return;
+      }
+
+      const suggestion = getSuggestionMatches(command)[0];
+      const suffix = suggestion ? ` Did you mean <span class="command-tag">${suggestion}</span>?` : "";
+      await typeOutput(`command not found: ${command}.${suffix}`, 10, "error-text");
+    }
+
+    async function submitCommand(value) {
+      if (state.isBusy) return;
+      state.isBusy = true;
+      const command = value.trim();
+      removeInputRow();
+      printCommand(command);
+
+      if (command) {
+        state.history.push(command);
+      }
+
+      await handleCommand(command);
+      createInputRow();
+      state.isBusy = false;
+    }
+
+    function handleInputKeyDown(event) {
+      const input = event.currentTarget;
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        submitCommand(input.value);
+        return;
+      }
+
+      if (event.key === "Tab") {
+        const match = getSuggestionMatches(input.value)[0];
+        if (match) {
+          event.preventDefault();
+          input.value = match;
+          renderSuggestions(match);
+        }
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        if (!state.history.length) return;
+        state.historyIndex = Math.max(0, state.historyIndex - 1);
+        input.value = state.history[state.historyIndex] ?? "";
+        renderSuggestions(input.value);
+        return;
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        if (!state.history.length) return;
+        state.historyIndex = Math.min(state.history.length, state.historyIndex + 1);
+        input.value = state.history[state.historyIndex] ?? "";
+        renderSuggestions(input.value);
+      }
+    }
+
+    async function runBootSequence() {
+      for (const line of bootLines) {
+        const row = document.createElement("div");
+        row.textContent = line;
+        bootLog.appendChild(row);
+        bootLog.scrollTop = bootLog.scrollHeight;
+        await sleep(line ? 150 : 100);
+      }
+
+      await sleep(500);
+      bootScreen.classList.add("hidden");
+      terminalScreen.classList.remove("hidden");
+      createInputRow();
+    }
+
+    themeToggle.addEventListener("click", () => {
+      const nextTheme = state.theme === "dark" ? "light" : "dark";
+      setTheme(nextTheme);
+      state.input?.focus();
+    });
+
+    terminalScreen.addEventListener("click", () => {
+      state.input?.focus();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (state.input && document.activeElement !== state.input && event.key.length === 1) {
+        state.input.focus();
+      }
+    });
+
+    setTheme(state.theme);
+    setSound(state.soundEnabled);
+    runBootSequence();
+  </script>
+</body>
+</html>
