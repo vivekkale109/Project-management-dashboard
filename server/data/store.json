@@ -19,7 +19,7 @@
       "title": "Engineering Manager",
       "avatar": "NP"
     },
-    
+
     {
       "id": "user-member",
       "name": "Leo Santos",
@@ -41,6 +41,7 @@
       "deadline": "2026-04-18",
       "color": "#ff7b72"
     },
+    
     {
       "id": "project-orbit",
       "name": "Orbit Analytics",
