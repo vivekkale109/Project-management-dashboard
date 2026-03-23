@@ -41,7 +41,7 @@
       "deadline": "2026-04-18",
       "color": "#ff7b72"
     },
-    
+
     {
       "id": "project-orbit",
       "name": "Orbit Analytics",
@@ -52,6 +52,7 @@
       "deadline": "2026-05-02",
       "color": "#5eead4"
     },
+    
     {
       "id": "project-pulse",
       "name": "Pulse Design System",
